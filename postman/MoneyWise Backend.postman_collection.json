@@ -1,0 +1,314 @@
+{
+  "info": {
+    "_postman_id": "a8c0c3b4-9b2e-4cc0-9b4c-7b6f9a8e2d10",
+    "name": "MoneyWise Backend",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Collection to test MoneyWise backend API endpoints. Requires successful login/register to set session cookie before accessing protected routes."
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{authName}}\",\n  \"password\": \"{{authPassword}}\",\n  \"relation\": \"{{authRelation}}\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 Created or 409 Conflict (already registered)', function () {",
+                  "  pm.expect([201, 409]).to.include(pm.response.code);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "  try {",
+                  "    const data = pm.response.json();",
+                  "    if (data && data.id) pm.environment.set('userId', data.id);",
+                  "  } catch (e) {}",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{authName}}\",\n  \"password\": \"{{authPassword}}\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', function () { pm.response.to.have.status(200); });",
+                  "try {",
+                  "  const data = pm.response.json();",
+                  "  if (data && data.id) pm.environment.set('userId', data.id);",
+                  "} catch (e) {}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Config",
+      "item": [
+        {
+          "name": "Get Config",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/config",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "config"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Config",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/config",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "config"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categories\": [\"Food\", \"Transport\"],\n  \"subcategories\": { \"Food\": [\"Groceries\", \"Dining\"], \"Transport\": [\"Fuel\", \"Bus\"] },\n  \"modes\": [\"Cash\", \"Card\"]\n}"
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Expenses",
+      "item": [
+        {
+          "name": "Add Expense",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/addExpenses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "addExpenses"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"{{category}}\",\n  \"subcategory\": \"{{subcategory}}\",\n  \"mode\": \"{{mode}}\",\n  \"amount\": {{amount}},\n  \"date\": \"{{date}}\",\n  \"comments\": \"{{comments}}\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 Created', function () { pm.response.to.have.status(201); });",
+                  "try {",
+                  "  const data = pm.response.json();",
+                  "  if (data && data._id) pm.environment.set('expenseId', data._id);",
+                  "} catch (e) {}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "List Expenses (optional filters)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api?startDate={{startDate}}&endDate={{endDate}}&category={{categoryFilter}}&subcategory={{subcategoryFilter}}&mode={{modeFilter}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api"
+              ],
+              "query": [
+                { "key": "startDate", "value": "{{startDate}}" },
+                { "key": "endDate", "value": "{{endDate}}" },
+                { "key": "category", "value": "{{categoryFilter}}" },
+                { "key": "subcategory", "value": "{{subcategoryFilter}}" },
+                { "key": "mode", "value": "{{modeFilter}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Summary (weekly/monthly)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/summary?type={{summaryType}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "summary"
+              ],
+              "query": [
+                { "key": "type", "value": "{{summaryType}}" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Expenses (unfiltered)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/expenses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "expenses"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Expense by ID",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/expenses/{{expenseId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "expenses",
+                "{{expenseId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000", "type": "string" },
+    { "key": "authName", "value": "alice", "type": "string" },
+    { "key": "authPassword", "value": "pass123", "type": "string" },
+    { "key": "authRelation", "value": "self", "type": "string" },
+    { "key": "category", "value": "Food", "type": "string" },
+    { "key": "subcategory", "value": "Groceries", "type": "string" },
+    { "key": "mode", "value": "Card", "type": "string" },
+    { "key": "amount", "value": "25.5", "type": "string" },
+    { "key": "date", "value": "2025-09-24", "type": "string" },
+    { "key": "comments", "value": "Milk and eggs", "type": "string" },
+    { "key": "startDate", "value": "2025-09-01", "type": "string" },
+    { "key": "endDate", "value": "2025-09-30", "type": "string" },
+    { "key": "categoryFilter", "value": "Food", "type": "string" },
+    { "key": "subcategoryFilter", "value": "Groceries", "type": "string" },
+    { "key": "modeFilter", "value": "Card", "type": "string" },
+    { "key": "summaryType", "value": "monthly", "type": "string" },
+    { "key": "expenseId", "value": "", "type": "string" },
+    { "key": "userId", "value": "", "type": "string" }
+  ]
+}
+
+
